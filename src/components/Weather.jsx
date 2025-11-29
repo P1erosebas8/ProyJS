@@ -16,7 +16,7 @@ export const Weather = () => {
     return (
         <div className="d-flex align-items-center gap-2">
             <span>{weather.temperature}°C</span>
-            <span style={{ fontSize: "20px" }}>
+            <span style={{ fontSize: "26px" }}>
                 {weather.weathercode <= 2 ? "☀️" :
                  weather.weathercode <= 3 ? "⛅" :
                  weather.weathercode <= 45 ? "🌫️" :

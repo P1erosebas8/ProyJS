@@ -4,7 +4,7 @@ export const Mensaje = () => {
   const [show, setShow] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShow(false), 2000);
+    const timer = setTimeout(() => setShow(false), 1000);
     return () => clearTimeout(timer);
   }, []);
   if (!show) return null;
@@ -16,7 +16,7 @@ export const Mensaje = () => {
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content text-center p-4">
           <h4 className="mb-3">Bienvenido</h4>
-          <p className="mb-0">Comineza a agregar cualquier cosa :p.</p>
+          <p className="mb-0">Comineza a navegar por tus diferentes curos.</p>
         </div>
       </div>
     </div>

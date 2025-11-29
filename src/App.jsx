@@ -3,6 +3,7 @@ import { useAuth } from "./hooks/useAuth,";
 import { Login } from "./components/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { RutaProtejida } from "./components/RutaProtejida";
+import { MainLayout } from "./layouts/MainLayout";
 
 function App() {
   const { isAuth, login, logout } = useAuth();
@@ -18,7 +19,9 @@ function App() {
           path="/dashboard"
           element={
             <RutaProtejida isAuth={isAuth}>
-              <Dashboard logout={logout} />
+              <MainLayout logout={logout}>
+                <Dashboard />
+              </MainLayout>
             </RutaProtejida>
           }
         />
@@ -36,7 +39,7 @@ const LoginWrapper = ({ login, isAuth }) => {
     const res = login(email, password);
 
     if (res.success) {
-      navigate("/dashboard"); 
+      navigate("/dashboard");
     } else {
       alert(res.message);
     }

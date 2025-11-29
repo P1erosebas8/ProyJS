@@ -6,7 +6,7 @@ export function useAuth() {
   });
 
   const login = (email, password) => {
-    if (email === "asd@asd.com" && password === "123") {
+    if (email === "u123456@wilpre.edu.pe" && password === "admin123") {
       setIsAuth(true);
       localStorage.setItem("logged", "true");
       return { success: true };

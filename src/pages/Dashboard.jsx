@@ -1,24 +1,16 @@
-import { useNavigate } from "react-router-dom";
-import { useCrud } from "../hooks/useCrud";
-import { useState } from "react";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { Contador } from "../components/Contador";
-import { Mensaje } from "../components/Mensaje";
+import { MainLayout } from "../layouts/MainLayout";
 import { Reloj } from "../components/Reloj";
 import { Weather } from "../components/Weather";
+import { Mensaje } from "../components/Mensaje";
+import { Contador } from "../components/Contador";
+import { useCrud } from "../hooks/useCrud";
+import { useState } from "react";
 import { ImagenPorPalabra } from "../components/ImagenPorPalabra";
 
-export const Dashboard = ({ logout }) => {
+export const Dashboard = () => {
     const { items, addItem, deleteItem, editItem } = useCrud("data");
     const [text, setText] = useState("");
     const [editing, setEditing] = useState(null);
-    const navigate = useNavigate();
-
-    const handleLogout = () => {
-        localStorage.removeItem("visits");
-        logout();
-        navigate("/");
-    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -33,35 +25,55 @@ export const Dashboard = ({ logout }) => {
 
     return (
         <>
-            <div className="container-fluid text-white mt-4 py-4" style={{ backgroundColor: "#363636ff", minHeight: "872px" }}>
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                    <h2 className="m-0">Cosas por hacer</h2>
-                    <Weather />
+            <h2 className="fw-bold mb-4">Bienvenido</h2>
+
+            <div className="row mb-4">
+                <div className="col-md-6">
+                    <div className="p-3 rounded" style={{ background: "#2b2c34" }}>
+                        <Reloj />
+                    </div>
                 </div>
 
+                <div className="col-md-6">
+                    <div className="p-3 rounded" style={{ background: "#2b2c34" }}>
+                        <Weather />
+                    </div>
+                </div>
+            </div>
+
+            <div className="mb-4 p-3 rounded" style={{ background: "#2b2c34" }}>
                 <Mensaje />
+            </div>
+
+            <div className="mb-4 p-3 rounded" style={{ background: "#2b2c34" }}>
                 <Contador reset={false} />
+            </div>
 
-                <form onSubmit={handleSubmit} className="d-flex gap-2 my-3">
-                    <input
-                        className="form-control"
-                        value={text}
-                        placeholder="Nuevo item"
-                        onChange={(e) => setText(e.target.value)}
-                    />
-                    <button className="btn btn-success">{editing ? "Actualizar" : "Agregar"}</button>
-                </form>
+            <form onSubmit={handleSubmit} className="d-flex gap-2 my-3">
+                <input
+                    className="form-control"
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="Nuevo item"
+                />
+                <button className="btn btn-primary">
+                    {editing ? "Actualizar" : "Agregar"}
+                </button>
+            </form>
 
-                <ul className="list-group">
-                    {items.map(item => (
-                        <li className="list-group-item d-flex align-items-center justify-content-between" key={item.id}>
+            <div className="row">
+                {items.map((item) => (
+                    <div className="col-md-4 mb-3" key={item.id}>
+                        <div
+                            className="p-3 rounded h-100 d-flex flex-column justify-content-between"
+                            style={{ background: "#2b2c34" }}
+                        >
                             <div className="d-flex align-items-center">
-                                {/* Imagen relacionada con el texto */}
                                 <ImagenPorPalabra palabra={item.text} />
                                 <span className="ms-3">{item.text}</span>
                             </div>
 
-                            <div>
+                            <div className="text-end mt-3">
                                 <button
                                     className="btn btn-warning btn-sm me-2"
                                     onClick={() => {
@@ -71,7 +83,6 @@ export const Dashboard = ({ logout }) => {
                                 >
                                     Editar
                                 </button>
-
                                 <button
                                     className="btn btn-danger btn-sm"
                                     onClick={() => deleteItem(item.id)}
@@ -79,17 +90,9 @@ export const Dashboard = ({ logout }) => {
                                     Eliminar
                                 </button>
                             </div>
-                        </li>
-                    ))}
-                </ul>
-
-                <button className="btn btn-danger mt-3" onClick={handleLogout}>
-                    Cerrar Sesión
-                </button>
-            </div>
-
-            <div className="bg-dark text-white text-end" style={{ padding: "10px 0", textAlign: "center", marginTop: "auto" }}>
-                <Reloj />
+                        </div>
+                    </div>
+                ))}
             </div>
         </>
     );
