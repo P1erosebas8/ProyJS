@@ -5,8 +5,21 @@ import {
     faClipboardCheck,
     faRightFromBracket
 } from "@fortawesome/free-solid-svg-icons";
+import { useEffect, useState } from "react";
 
 export const Sidebar = ({ onLogout }) => {
+    const [userEmail, setUserEmail] = useState("");
+
+    useEffect(() => {
+        const savedUser = localStorage.getItem("user");
+
+        if (savedUser) {
+            const user = JSON.parse(savedUser);
+            const correo = user.email || "";
+            setUserEmail(correo.split("@")[0]);
+        }
+    }, []);
+
     return (
         <aside
             className="d-flex flex-column p-3 shadow"
@@ -18,7 +31,7 @@ export const Sidebar = ({ onLogout }) => {
             }}
         >
             <h4 className="text-center mb-4 fw-bold" style={{ letterSpacing: "1px" }}>
-                Hola,<strong>u123456</strong>
+                Hola,<strong>{userEmail || "Usuario"}</strong>
             </h4>
 
             <div className="d-flex flex-column gap-2">
@@ -40,7 +53,9 @@ export const Sidebar = ({ onLogout }) => {
             </div>
 
             <div className="mt-auto pt-3">
-                <button type="button" className="btn w-100 btn-danger d-flex align-items-center justify-content-center gap-2"
+                <button
+                    type="button"
+                    className="btn w-100 btn-danger d-flex align-items-center justify-content-center gap-2"
                     onClick={onLogout}
                 >
                     <FontAwesomeIcon icon={faRightFromBracket} />

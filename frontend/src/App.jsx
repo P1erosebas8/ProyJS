@@ -35,8 +35,8 @@ export default App;
 const LoginWrapper = ({ login, isAuth }) => {
   const navigate = useNavigate();
 
-  const handleLogin = (email, password) => {
-    const res = login(email, password);
+  const handleLogin = async (email, password) => {
+    const res = await login(email, password);
 
     if (res.success) {
       navigate("/dashboard");
@@ -44,6 +44,7 @@ const LoginWrapper = ({ login, isAuth }) => {
       alert(res.message);
     }
   };
+
   if (isAuth) return <Navigate to="/dashboard" />;
 
   return <Login onLogin={handleLogin} />;

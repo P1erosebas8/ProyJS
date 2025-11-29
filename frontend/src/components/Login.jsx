@@ -1,12 +1,24 @@
 import { useState } from "react";
+import { loginRequest } from "../services/auth";
 
-export const Login = ({ onLogin }) => {
+export const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
-    const handleSubmit = (e) => {
+    
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onLogin(email, password);
+
+        const res = await loginRequest(email, password);
+
+        if (!res.ok) {
+            alert("Credenciales incorrectas");
+            return;
+        }
+
+        const data = await res.json();
+        localStorage.setItem("logged", "true");
+        localStorage.setItem("user", JSON.stringify(data.user));
+        window.location.href = "/dashboard";
     };
 
     return (
