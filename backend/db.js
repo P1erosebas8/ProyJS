@@ -21,17 +21,65 @@ async function createTables(pool) {
     `);
 
     await pool.query(`
+        CREATE TABLE IF NOT EXISTS cursos (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            titulo VARCHAR(255) NOT NULL,
+            descripcion TEXT,
+            imagen VARCHAR(255),
+            precio DECIMAL(10, 2) DEFAULT 0.00
+        )
+    `);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS inscripciones (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            usuario_id INT NOT NULL,
+            curso_id INT NOT NULL,
+            fecha_inscripcion DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+            FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE CASCADE
+        )
+    `);
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS lecciones (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            curso_id INT NOT NULL,
+            titulo VARCHAR(255) NOT NULL,
+            contenido TEXT,
+            video_url VARCHAR(255),
+            orden INT DEFAULT 0,
+            FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE CASCADE
+        )
+    `);
+
+    await pool.query(`
         INSERT INTO usuarios (email, password)
         SELECT * FROM (SELECT 'admin@admin.com', 'admin123') AS tmp
         WHERE NOT EXISTS (
             SELECT email FROM usuarios WHERE email = 'admin@admin.com'
         ) LIMIT 1;
     `);
-}
 
-(async () => {
-    await createConnection();
-})();
+    // Seed Data for Courses
+    const [courses] = await pool.query("SELECT * FROM cursos");
+    if (courses.length === 0) {
+        await pool.query(`
+            INSERT INTO cursos (titulo, descripcion, imagen, precio) VALUES
+            ('Introducción a React', 'Aprende los fundamentos de React, componentes y hooks.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png', 0.00),
+            ('Node.js y Express', 'Construye APIs RESTful robustas con Node.js.', 'https://upload.wikimedia.org/wikipedia/commons/d/d9/Node.js_logo.svg', 10.00)
+        `);
+
+        // Get inserted IDs to seed lessons (assuming 1 and 2 for simplicity in this seed block, but better to fetch)
+        // For simplicity in this MVP seed, we'll assume auto-increment starts at 1.
+        await pool.query(`
+            INSERT INTO lecciones (curso_id, titulo, contenido, video_url, orden) VALUES
+            (1, 'Bienvenida', 'Introducción al curso de React.', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 1),
+            (1, 'Componentes', 'Qué son los componentes.', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 2),
+            (2, 'Setup Inicial', 'Instalando Node.js.', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 1)
+        `);
+    }
+}
 
 const pool = mysql.createPool({
     host: "localhost",
@@ -40,6 +88,14 @@ const pool = mysql.createPool({
     database: "login_db"
 });
 
-createTables(pool);
+(async () => {
+    try {
+        await createConnection();
+        await createTables(pool);
+        console.log("Base de datos y tablas inicializadas correctamente.");
+    } catch (error) {
+        console.error("Error inicializando la base de datos:", error);
+    }
+})();
 
 module.exports = pool;

@@ -1,14 +1,17 @@
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faGauge,
     faEnvelope,
     faClipboardCheck,
-    faRightFromBracket
+    faRightFromBracket,
+    faBook
 } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 
 export const Sidebar = ({ onLogout }) => {
     const [userEmail, setUserEmail] = useState("");
+    const navigate = useNavigate();
 
     useEffect(() => {
         const savedUser = localStorage.getItem("user");
@@ -36,9 +39,20 @@ export const Sidebar = ({ onLogout }) => {
 
             <div className="d-flex flex-column gap-2">
 
-                <button className="btn btn-sidebar text-start text-white">
+                <button
+                    className="btn btn-sidebar text-start text-white"
+                    onClick={() => navigate('/dashboard')}
+                >
                     <FontAwesomeIcon icon={faGauge} className="me-2" />
                     Dashboard
+                </button>
+
+                <button
+                    className="btn btn-sidebar text-start text-white"
+                    onClick={() => navigate('/cursos')}
+                >
+                    <FontAwesomeIcon icon={faBook} className="me-2" />
+                    Cursos
                 </button>
 
                 <button className="btn btn-sidebar text-start text-white">

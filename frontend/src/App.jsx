@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { useAuth } from "./hooks/useAuth,";
 import { Login } from "./components/Login";
 import { Dashboard } from "./pages/Dashboard";
+import { Courses } from "./pages/Courses";
+import { CourseDetail } from "./pages/CourseDetail";
 import { RutaProtejida } from "./components/RutaProtejida";
 import { MainLayout } from "./layouts/MainLayout";
 
@@ -21,6 +23,26 @@ function App() {
             <RutaProtejida isAuth={isAuth}>
               <MainLayout logout={logout}>
                 <Dashboard />
+              </MainLayout>
+            </RutaProtejida>
+          }
+        />
+        <Route
+          path="/cursos"
+          element={
+            <RutaProtejida isAuth={isAuth}>
+              <MainLayout logout={logout}>
+                <Courses />
+              </MainLayout>
+            </RutaProtejida>
+          }
+        />
+        <Route
+          path="/cursos/:id"
+          element={
+            <RutaProtejida isAuth={isAuth}>
+              <MainLayout logout={logout}>
+                <CourseDetail />
               </MainLayout>
             </RutaProtejida>
           }
