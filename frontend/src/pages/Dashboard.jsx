@@ -1,5 +1,3 @@
-
-
 import { Reloj } from "../components/Reloj";
 import { Weather } from "../components/Weather";
 import { Contador } from "../components/Contador";
@@ -14,13 +12,24 @@ export const Dashboard = () => {
     });
 
     useEffect(() => {
-        // En una app real, esto vendría de tu API
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setStats({
-            totalUsuarios: 125,
-            totalCursos: 8,
-            totalInscripciones: 342
-        });
+        const fetchStats = async () => {
+            const resUsuarios = await fetch("http://localhost:3000/api/usuarios");
+            const usuarios = await resUsuarios.json();
+
+            const resCursos = await fetch("http://localhost:3000/api/cursos");
+            const cursos = await resCursos.json();
+
+            const resInscripciones = await fetch("http://localhost:3000/api/inscripciones");
+            const inscripciones = await resInscripciones.json();
+
+            setStats({
+                totalUsuarios: usuarios.length,
+                totalCursos: cursos.length,
+                totalInscripciones: inscripciones.length
+            });
+        };
+
+        fetchStats();
     }, []);
 
     return (

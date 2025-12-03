@@ -9,38 +9,61 @@ export const Courses = () => {
     const [courseActual, setCourseActual] = useState({ id: null, titulo: "", descripcion: "", precio: 0.00 });
 
     useEffect(() => {
-        
-        const data = [
-            { id: 1, titulo: "Introducción a React", descripcion: "Aprende los fundamentos de React.", precio: 0.00, estado: "activo" },
-            { id: 2, titulo: "Node.js y Express", descripcion: "Construye APIs RESTful robustas.", precio: 10.00, estado: "activo" },
-        ];
-        setTimeout(() => { setCourses(data); setLoading(false); }, 500);
+        fetch("http://localhost:3000/api/cursos")
+            .then(res => res.json())
+            .then(data => {
+                setCourses(data);
+                setLoading(false);
+            });
     }, []);
+
 
     const handleEdit = (course) => {
         setCourseActual(course);
         setShowModal(true);
     };
 
-    const handleDelete = (id) => {
-        if (window.confirm("¿Estás seguro de que quieres eliminar este curso?")) {
-            setCourses(courses.filter(c => c.id !== id));
-        }
+    const handleDelete = async (id) => {
+        if (!window.confirm("¿Eliminar este curso?")) return;
+
+        await fetch(`http://localhost:3000/api/cursos/${id}`, {
+            method: "DELETE"
+        });
+
+        setCourses(courses.filter(c => c.id !== id));
     };
 
-    const toggleEstado = (id) => {
-        setCourses(courses.map(c => c.id === id ? { ...c, estado: c.estado === 'activo' ? 'inactivo' : 'activo' } : c));
-    };
+    const handleSave = async () => {
+        const payload = {
+            titulo: courseActual.titulo,
+            descripcion: courseActual.descripcion,
+            imagen: courseActual.imagen,
+            precio: courseActual.precio
+        };
 
-    const handleSave = () => {
         if (courseActual.id) {
-            setCourses(courses.map(c => c.id === courseActual.id ? courseActual : c));
+            // EDITAR
+            await fetch(`http://localhost:3000/api/cursos/${courseActual.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            setCourses(courses.map(c => c.id === courseActual.id ? { ...courseActual } : c));
         } else {
-            const nuevoCourse = { ...courseActual, id: Date.now(), estado: "activo" };
-            setCourses([...courses, nuevoCourse]);
+            // AGREGAR NUEVO
+            const res = await fetch("http://localhost:3000/api/cursos", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const nuevo = await res.json();
+            setCourses([...courses, nuevo]);
         }
+
         setShowModal(false);
-        setCourseActual({ id: null, titulo: "", descripcion: "", precio: 0.00 });
+        setCourseActual({ id: null, titulo: "", descripcion: "", imagen: "", precio: 0 });
     };
 
     if (loading) return <div className="text-center mt-4"><div className="spinner-border"></div></div>;
@@ -63,7 +86,7 @@ export const Courses = () => {
                                     <th>ID</th>
                                     <th>Título</th>
                                     <th>Precio</th>
-                                    <th>Estado</th>
+                                    <th>Descripcion</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -73,11 +96,10 @@ export const Courses = () => {
                                         <td>{course.id}</td>
                                         <td>{course.titulo}</td>
                                         <td>{course.precio > 0 ? `$${course.precio}` : "Gratis"}</td>
-                                        <td><span className={`badge ${course.estado === 'activo' ? 'bg-success' : 'bg-danger'}`}>{course.estado}</span></td>
+                                        <td>{course.descripcion}</td>
                                         <td>
-                                            <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(course)}><i className="fa fa-edit"></i></button>
-                                            <button className="btn btn-sm btn-info me-2" onClick={() => toggleEstado(course.id)}><i className="fa fa-power-off"></i></button>
-                                            <button className="btn btn-sm btn-danger" onClick={() => handleDelete(course.id)}><i className="fa fa-trash"></i></button>
+                                            <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(course)}>Editar<i className="fa fa-edit"></i></button>
+                                            <button className="btn btn-sm btn-danger" onClick={() => handleDelete(course.id)}>Eliminar<i className="fa fa-trash"></i></button>
                                         </td>
                                     </tr>
                                 ))}
@@ -87,7 +109,7 @@ export const Courses = () => {
                 </div>
             </div>
 
-            
+
             {showModal && (
                 <div className="modal show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
                     <div className="modal-dialog">
@@ -108,6 +130,15 @@ export const Courses = () => {
                                 <div className="mb-3">
                                     <label className="form-label">Precio</label>
                                     <input type="number" className="form-control" step="0.01" value={courseActual.precio} onChange={(e) => setCourseActual({ ...courseActual, precio: parseFloat(e.target.value) })} />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Imagen (URL)</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={courseActual.imagen}
+                                        onChange={(e) => setCourseActual({ ...courseActual, imagen: e.target.value })}
+                                    />
                                 </div>
                             </div>
                             <div className="modal-footer">

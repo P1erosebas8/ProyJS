@@ -7,19 +7,23 @@ export const Inscripciones = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        
-        const data = [
-            { id: 1, usuario_email: "estudiante1@ejemplo.com", curso_titulo: "Introducción a React", fecha_inscripcion: "2023-10-01" },
-            { id: 2, usuario_email: "estudiante2@ejemplo.com", curso_titulo: "Node.js y Express", fecha_inscripcion: "2023-10-05" },
-            { id: 3, usuario_email: "estudiante1@ejemplo.com", curso_titulo: "Node.js y Express", fecha_inscripcion: "2023-10-06" },
-        ];
-        setTimeout(() => { setInscripciones(data); setLoading(false); }, 500);
+        fetch("http://localhost:3000/api/inscripciones")
+            .then(res => res.json())
+            .then(data => {
+                setInscripciones(data);
+                setLoading(false);
+            });
     }, []);
 
-    const handleDelete = (id) => {
-        if (window.confirm("¿Estás seguro de que quieres eliminar esta inscripción?")) {
-            setInscripciones(inscripciones.filter(i => i.id !== id));
-        }
+
+    const handleDelete = async (id) => {
+        if (!window.confirm("¿Eliminar inscripción?")) return;
+
+        await fetch(`http://localhost:3000/api/inscripciones/${id}`, {
+            method: "DELETE"
+        });
+
+        setInscripciones(inscripciones.filter(i => i.id !== id));
     };
 
     if (loading) return <div className="text-center mt-4"><div className="spinner-border"></div></div>;
@@ -45,8 +49,8 @@ export const Inscripciones = () => {
                                 {inscripciones.map(inscripcion => (
                                     <tr key={inscripcion.id}>
                                         <td>{inscripcion.id}</td>
-                                        <td>{inscripcion.usuario_email}</td>
-                                        <td>{inscripcion.curso_titulo}</td>
+                                        <td>{inscripcion.email}</td>
+                                        <td>{inscripcion.titulo}</td>
                                         <td>{inscripcion.fecha_inscripcion}</td>
                                         <td>
                                             <button className="btn btn-sm btn-danger" onClick={() => handleDelete(inscripcion.id)}>

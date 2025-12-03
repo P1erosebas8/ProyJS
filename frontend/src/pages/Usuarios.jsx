@@ -9,36 +9,62 @@ export const Usuarios = () => {
     const [usuarioActual, setUsuarioActual] = useState({ id: null, email: "", rol: "estudiante" });
 
     useEffect(() => {
-        
-        const data = [
-            { id: 1, email: "admin@admin.com", rol: "administrador" },
-            { id: 2, email: "profesor1@ejemplo.com", rol: "profesor" },
-            { id: 3, email: "estudiante1@ejemplo.com", rol: "estudiante" },
-        ];
-        setTimeout(() => { setUsuarios(data); setLoading(false); }, 500);
+        fetch("http://localhost:3000/api/usuarios")
+            .then(res => res.json())
+            .then(data => {
+                setUsuarios(data);
+                setLoading(false);
+            });
     }, []);
+
 
     const handleEdit = (usuario) => {
         setUsuarioActual(usuario);
         setShowModal(true);
     };
 
-    const handleDelete = (id) => {
-        if (window.confirm("¿Estás seguro de que quieres eliminar este usuario?")) {
-            setUsuarios(usuarios.filter(u => u.id !== id));
-        }
+    const handleDelete = async (id) => {
+        if (!window.confirm("¿Eliminar usuario?")) return;
+
+        await fetch(`http://localhost:3000/api/usuarios/${id}`, {
+            method: "DELETE"
+        });
+
+        setUsuarios(usuarios.filter(u => u.id !== id));
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        const payload = {
+            email: usuarioActual.email,
+            password: usuarioActual.password,
+            rol: usuarioActual.rol
+        };
+
         if (usuarioActual.id) {
-            setUsuarios(usuarios.map(u => u.id === usuarioActual.id ? usuarioActual : u));
+            // EDITAR
+            await fetch(`http://localhost:3000/api/usuarios/${usuarioActual.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            setUsuarios(usuarios.map(u => u.id === usuarioActual.id ? { ...usuarioActual } : u));
         } else {
-            const nuevoUsuario = { ...usuarioActual, id: Date.now() };
-            setUsuarios([...usuarios, nuevoUsuario]);
+            // AGREGAR
+            const res = await fetch("http://localhost:3000/api/usuarios", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const nuevo = await res.json();
+            setUsuarios([...usuarios, nuevo]);
         }
+
         setShowModal(false);
-        setUsuarioActual({ id: null, email: "", rol: "estudiante" });
+        setUsuarioActual({ id: null, email: "", password: "", rol: "estudiante" });
     };
+
 
     if (loading) return <div className="text-center mt-4"><div className="spinner-border"></div></div>;
 
@@ -70,10 +96,10 @@ export const Usuarios = () => {
                                         <td>{usuario.email}</td>
                                         <td><span className={`badge ${usuario.rol === 'administrador' ? 'bg-danger' : 'bg-info'}`}>{usuario.rol}</span></td>
                                         <td>
-                                            <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(usuario)}>
+                                            <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(usuario)}>Editar
                                                 <i className="fa fa-edit"></i>
                                             </button>
-                                            <button className="btn btn-sm btn-danger" onClick={() => handleDelete(usuario.id)}>
+                                            <button className="btn btn-sm btn-danger" onClick={() => handleDelete(usuario.id)}>Eliminar
                                                 <i className="fa fa-trash"></i>
                                             </button>
                                         </td>
@@ -85,7 +111,7 @@ export const Usuarios = () => {
                 </div>
             </div>
 
-            
+
             {showModal && (
                 <div className="modal show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
                     <div className="modal-dialog">
@@ -98,6 +124,15 @@ export const Usuarios = () => {
                                 <div className="mb-3">
                                     <label className="form-label">Email</label>
                                     <input type="email" className="form-control" value={usuarioActual.email} onChange={(e) => setUsuarioActual({ ...usuarioActual, email: e.target.value })} />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Contraseña</label>
+                                    <input
+                                        type="password"
+                                        className="form-control"
+                                        value={usuarioActual.password}
+                                        onChange={(e) => setUsuarioActual({ ...usuarioActual, password: e.target.value })}
+                                    />
                                 </div>
                                 <div className="mb-3">
                                     <label className="form-label">Rol</label>

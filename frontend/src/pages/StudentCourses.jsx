@@ -2,63 +2,115 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 export const StudentCourses = () => {
-    const [courses, setCourses] = useState([]);
-    const [enrolledCourses, setEnrolledCourses] = useState([]);
+    const [courses, setCourses] = useState([]);            // Cursos disponibles
+    const [enrolledCourses, setEnrolledCourses] = useState([]); // Cursos inscritos
     const [loading, setLoading] = useState(true);
 
+    const user = JSON.parse(localStorage.getItem("user"));
+
     useEffect(() => {
-        // En una app real, esto vendría de tu API
-        // Cursos disponibles
-        const availableCourses = [
-            { id: 1, titulo: "Introducción a React", descripcion: "Aprende los fundamentos de React.", precio: 0.00 },
-            { id: 2, titulo: "Node.js y Express", descripcion: "Construye APIs RESTful robustas.", precio: 10.00 },
-            { id: 3, titulo: "JavaScript Avanzado", descripcion: "Profundiza en JavaScript moderno.", precio: 15.00 },
-        ];
-        
-        // Cursos inscritos
-        const enrolled = [
-            { id: 1, titulo: "Introducción a React", progreso: 75, fecha_inscripcion: "2023-09-15" },
-            { id: 2, titulo: "Node.js y Express", progreso: 30, fecha_inscripcion: "2023-10-01" },
-        ];
-        
-        setTimeout(() => { 
-            setCourses(availableCourses); 
-            setEnrolledCourses(enrolled); 
-            setLoading(false); 
-        }, 500);
+        if (!user) return;
+
+        const loadData = async () => {
+            try {
+                // 1. Obtener todos los cursos
+                const resCourses = await fetch("http://localhost:3000/api/cursos");
+                const allCourses = await resCourses.json();
+
+                // 2. Obtener las inscripciones del usuario
+                const resEnroll = await fetch(`http://localhost:3000/api/inscripciones/usuario/${user.id}`);
+                const inscripciones = await resEnroll.json();
+
+                // Cursos inscritos transformados
+                const enrolled = inscripciones.map(item => ({
+                    id: item.curso.id,
+                    titulo: item.curso.titulo,
+                    descripcion: item.curso.descripcion,
+                    progreso: 0, // NO existe en backend aún
+                    fecha_inscripcion: item.fecha_inscripcion
+                }));
+
+                // Filtrar cursos NO inscritos
+                const available = allCourses.filter(
+                    c => !enrolled.some(e => e.id === c.id)
+                );
+
+                setEnrolledCourses(enrolled);
+                setCourses(available);
+                setLoading(false);
+
+            } catch (error) {
+                console.log("Error cargando cursos:", error);
+                setLoading(false);
+            }
+        };
+
+        loadData();
     }, []);
 
-    const handleEnroll = (courseId) => {
-        const course = courses.find(c => c.id === courseId);
-        if (course) {
+    const handleEnroll = async (courseId) => {
+        try {
+            const body = {
+                usuario_id: user.id,
+                curso_id: courseId
+            };
+
+            const res = await fetch("http://localhost:3000/api/inscripciones", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+
+            if (!res.ok) {
+                alert("Error al inscribirse");
+                return;
+            }
+
+            const course = courses.find(c => c.id === courseId);
+
             const newEnrollment = {
                 ...course,
                 progreso: 0,
-                fecha_inscripcion: new Date().toISOString().split('T')[0]
+                fecha_inscripcion: new Date().toISOString().split("T")[0]
             };
+
             setEnrolledCourses([...enrolledCourses, newEnrollment]);
             setCourses(courses.filter(c => c.id !== courseId));
+
+            alert("Inscripción realizada con éxito");
+
+        } catch (error) {
+            console.log("Error inscribiendo:", error);
         }
     };
 
-    if (loading) return <div className="text-center mt-4"><div className="spinner-border"></div></div>;
+    if (loading)
+        return (
+            <div className="text-center mt-4">
+                <div className="spinner-border"></div>
+            </div>
+        );
 
     return (
         <>
             <h2 className="mb-4">Mis Cursos</h2>
 
-            {/* Pestañas para cursos inscritos y disponibles */}
+            {/* Tabs */}
             <ul className="nav nav-tabs mb-4">
                 <li className="nav-item">
-                    <button className="nav-link active" data-bs-toggle="tab" data-bs-target="#enrolled">Cursos Inscritos</button>
+                    <button className="nav-link active" data-bs-toggle="tab" data-bs-target="#enrolled">
+                        Cursos Inscritos
+                    </button>
                 </li>
                 <li className="nav-item">
-                    <button className="nav-link" data-bs-toggle="tab" data-bs-target="#available">Cursos Disponibles</button>
+                    <button className="nav-link" data-bs-toggle="tab" data-bs-target="#available">
+                        Cursos Disponibles
+                    </button>
                 </li>
             </ul>
 
             <div className="tab-content">
-                {/* Cursos inscritos */}
+                {/* CURSOS INSCRITOS */}
                 <div className="tab-pane fade show active" id="enrolled">
                     {enrolledCourses.length > 0 ? (
                         <div className="row">
@@ -68,20 +120,24 @@ export const StudentCourses = () => {
                                         <div className="card-body">
                                             <h5 className="card-title">{course.titulo}</h5>
                                             <p className="card-text">{course.descripcion}</p>
-                                            <p className="card-text"><small>Inscrito el: {course.fecha_inscripcion}</small></p>
+                                            <p className="card-text">
+                                                <small>Inscrito el: {course.fecha_inscripcion}</small>
+                                            </p>
+
                                             <div className="progress mb-3">
-                                                <div 
-                                                    className="progress-bar bg-success" 
-                                                    role="progressbar" 
+                                                <div
+                                                    className="progress-bar bg-success"
+                                                    role="progressbar"
                                                     style={{ width: `${course.progreso}%` }}
-                                                    aria-valuenow={course.progreso} 
-                                                    aria-valuemin="0" 
-                                                    aria-valuemax="100"
                                                 >
                                                     {course.progreso}%
                                                 </div>
                                             </div>
-                                            <Link to={`/student-courses/${course.id}`} className="btn btn-primary">
+
+                                            <Link
+                                                to={`/student-courses/${course.id}`}
+                                                className="btn btn-primary"
+                                            >
                                                 <i className="fa fa-play"></i> Continuar Curso
                                             </Link>
                                         </div>
@@ -91,12 +147,12 @@ export const StudentCourses = () => {
                         </div>
                     ) : (
                         <div className="alert alert-info">
-                            No estás inscrito en ningún curso aún. Revisa la pestaña de "Cursos Disponibles".
+                            No estás inscrito en ningún curso aún.
                         </div>
                     )}
                 </div>
 
-                {/* Cursos disponibles */}
+                {/* CURSOS DISPONIBLES */}
                 <div className="tab-pane fade" id="available">
                     {courses.length > 0 ? (
                         <div className="row">
@@ -108,11 +164,12 @@ export const StudentCourses = () => {
                                             <p className="card-text">{course.descripcion}</p>
                                             <p className="card-text">
                                                 <span className="badge bg-success">
-                                                    {course.precio > 0 ? `$${course.precio}` : "Gratis"}
+                                                    {course.precio > 0 ? `S/. ${course.precio}` : "Gratis"}
                                                 </span>
                                             </p>
-                                            <button 
-                                                className="btn btn-success" 
+
+                                            <button
+                                                className="btn btn-success"
                                                 onClick={() => handleEnroll(course.id)}
                                             >
                                                 <i className="fa fa-plus"></i> Inscribirse

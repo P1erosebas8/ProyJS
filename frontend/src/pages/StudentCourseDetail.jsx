@@ -7,51 +7,75 @@ export const StudentCourseDetail = () => {
     const [selectedLesson, setSelectedLesson] = useState(null);
     const [completedLessons, setCompletedLessons] = useState([]);
 
-    useEffect(() => {
-        // En una app real, esto vendría de tu API
-        fetch(`http://localhost:3000/api/courses/${id}`)
-            .then((res) => res.json())
-            .then((data) => {
-                setCourse(data);
-                if (data.lecciones && data.lecciones.length > 0) {
-                    setSelectedLesson(data.lecciones[0]);
-                    // Simular algunas lecciones completadas
-                    setCompletedLessons([1]); // Lección con ID 1 marcada como completada
-                }
-            })
-            .catch((err) => console.error("Error fetching course details:", err));
-    }, [id]);
+useEffect(() => {
+    const loadData = async () => {
+        try {
+            const cursoRes = await fetch(`http://localhost:3000/api/cursos/${id}`);
+            const cursoData = await cursoRes.json();
 
-    const toggleLessonComplete = (lessonId) => {
-        if (completedLessons.includes(lessonId)) {
-            setCompletedLessons(completedLessons.filter(id => id !== lessonId));
-        } else {
-            setCompletedLessons([...completedLessons, lessonId]);
+            setCourse(cursoData);
+            if (cursoData.lecciones?.length > 0) setSelectedLesson(cursoData.lecciones[0]);
+
+            // Obtener progreso de usuario 1
+            const progresoRes = await fetch(`http://localhost:3000/api/progreso/curso/${id}`);
+            const progresoData = await progresoRes.json();
+            setCompletedLessons(progresoData.completadas);
+
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    loadData();
+}, [id]);
+
+
+    const toggleLessonComplete = async (lessonId) => {
+        try {
+            const res = await fetch(`http://localhost:3000/api/student/lessons/${lessonId}/complete`, {
+                method: "POST",
+                credentials: "include"
+            });
+
+            if (!res.ok) {
+                alert("Error al marcar la lección");
+                return;
+            }
+
+            // Alternar estado local
+            if (completedLessons.includes(lessonId)) {
+                setCompletedLessons(completedLessons.filter(id => id !== lessonId));
+            } else {
+                setCompletedLessons([...completedLessons, lessonId]);
+            }
+
+        } catch (err) {
+            console.error("Error marking lesson:", err);
         }
     };
 
     if (!course) return <div className="container mt-4">Cargando...</div>;
 
-    const progress = course.lecciones ? Math.round((completedLessons.length / course.lecciones.length) * 100) : 0;
+    const progress = course.lecciones
+        ? Math.round((completedLessons.length / course.lecciones.length) * 100)
+        : 0;
 
     return (
         <div className="container mt-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h2>{course.titulo}</h2>
+
                 <div className="progress" style={{ width: "200px" }}>
-                    <div 
-                        className="progress-bar bg-success" 
-                        role="progressbar" 
+                    <div
+                        className="progress-bar bg-success"
+                        role="progressbar"
                         style={{ width: `${progress}%` }}
-                        aria-valuenow={progress} 
-                        aria-valuemin="0" 
-                        aria-valuemax="100"
                     >
                         {progress}% Completado
                     </div>
                 </div>
             </div>
-            
+
             <div className="row">
                 {/* Lista de lecciones */}
                 <div className="col-md-4">
@@ -60,94 +84,99 @@ export const StudentCourseDetail = () => {
                             <h5 className="mb-0">Lecciones</h5>
                         </div>
                         <ul className="list-group list-group-flush">
-                            {course.lecciones && course.lecciones.map((lesson) => (
-                                <li
-                                    key={lesson.id}
-                                    className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${
-                                        selectedLesson && selectedLesson.id === lesson.id ? "active" : ""
-                                    }`}
-                                    style={{ cursor: "pointer" }}
-                                    onClick={() => setSelectedLesson(lesson)}
-                                >
-                                    <span>
-                                        {lesson.orden}. {lesson.titulo}
-                                    </span>
-                                    <button 
-                                        className={`btn btn-sm ${completedLessons.includes(lesson.id) ? 'btn-success' : 'btn-outline-secondary'}`}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleLessonComplete(lesson.id);
-                                        }}
+                            {course.lecciones.length > 0 ? (
+                                course.lecciones.map((lesson) => (
+                                    <li
+                                        key={lesson.id}
+                                        className={`list-group-item d-flex justify-content-between align-items-center ${selectedLesson?.id === lesson.id ? "active" : ""
+                                            }`}
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() => setSelectedLesson(lesson)}
                                     >
-                                        <i className={`fa ${completedLessons.includes(lesson.id) ? 'fa-check' : 'fa-circle'}`}></i>
-                                    </button>
-                                </li>
-                            ))}
-                            {(!course.lecciones || course.lecciones.length === 0) && (
-                                <li className="list-group-item text-muted">No hay lecciones disponibles.</li>
+                                        <span>{lesson.orden}. {lesson.titulo}</span>
+
+                                        <button
+                                            className={`btn btn-sm ${completedLessons.includes(lesson.id)
+                                                    ? "btn-success"
+                                                    : "btn-outline-secondary"
+                                                }`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleLessonComplete(lesson.id);
+                                            }}
+                                        >
+                                            <i className={`fa ${completedLessons.includes(lesson.id)
+                                                    ? "fa-check"
+                                                    : "fa-circle"
+                                                }`}></i>
+                                        </button>
+                                    </li>
+                                ))
+                            ) : (
+                                <li className="list-group-item text-muted">No hay lecciones.</li>
                             )}
                         </ul>
                     </div>
                 </div>
 
-                {/* Contenido de la lección seleccionada */}
+                {/* Contenido */}
                 <div className="col-md-8">
                     {selectedLesson ? (
                         <div className="card shadow-sm">
                             <div className="card-body">
                                 <h3>{selectedLesson.titulo}</h3>
                                 <hr />
+
                                 {selectedLesson.video_url && (
                                     <div className="ratio ratio-16x9 mb-4">
-                                        <iframe
-                                            src={selectedLesson.video_url}
-                                            title={selectedLesson.titulo}
-                                            allowFullScreen
-                                        ></iframe>
+                                        <iframe src={selectedLesson.video_url} allowFullScreen></iframe>
                                     </div>
                                 )}
+
                                 <div dangerouslySetInnerHTML={{ __html: selectedLesson.contenido }} />
-                                
+
                                 <div className="d-flex justify-content-between mt-4">
-                                    <button 
+                                    {/* Anterior */}
+                                    <button
                                         className="btn btn-secondary"
-                                        disabled={!course.lecciones || course.lecciones.findIndex(l => l.id === selectedLesson.id) === 0}
+                                        disabled={course.lecciones.findIndex(l => l.id === selectedLesson.id) === 0}
                                         onClick={() => {
                                             const currentIndex = course.lecciones.findIndex(l => l.id === selectedLesson.id);
-                                            if (currentIndex > 0) {
-                                                setSelectedLesson(course.lecciones[currentIndex - 1]);
-                                            }
+                                            setSelectedLesson(course.lecciones[currentIndex - 1]);
                                         }}
                                     >
-                                        <i className="fa fa-arrow-left"></i> Lección Anterior
+                                        ← Anterior
                                     </button>
-                                    
-                                    <button 
-                                        className={`btn ${completedLessons.includes(selectedLesson.id) ? 'btn-success' : 'btn-primary'}`}
+
+                                    {/* Completar */}
+                                    <button
+                                        className={`btn ${completedLessons.includes(selectedLesson.id)
+                                                ? "btn-success"
+                                                : "btn-primary"
+                                            }`}
                                         onClick={() => toggleLessonComplete(selectedLesson.id)}
                                     >
-                                        {completedLessons.includes(selectedLesson.id) ? 'Completada' : 'Marcar como Completada'}
+                                        {completedLessons.includes(selectedLesson.id)
+                                            ? "Completada"
+                                            : "Marcar como Completada"}
                                     </button>
-                                    
-                                    <button 
+
+                                    {/* Siguiente */}
+                                    <button
                                         className="btn btn-secondary"
-                                        disabled={!course.lecciones || course.lecciones.findIndex(l => l.id === selectedLesson.id) === course.lecciones.length - 1}
+                                        disabled={course.lecciones.findIndex(l => l.id === selectedLesson.id) === course.lecciones.length - 1}
                                         onClick={() => {
                                             const currentIndex = course.lecciones.findIndex(l => l.id === selectedLesson.id);
-                                            if (currentIndex < course.lecciones.length - 1) {
-                                                setSelectedLesson(course.lecciones[currentIndex + 1]);
-                                            }
+                                            setSelectedLesson(course.lecciones[currentIndex + 1]);
                                         }}
                                     >
-                                        Siguiente Lección <i className="fa fa-arrow-right"></i>
+                                        Siguiente →
                                     </button>
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        <div className="alert alert-info">
-                            Selecciona una lección para comenzar.
-                        </div>
+                        <div className="alert alert-info">Selecciona una lección.</div>
                     )}
                 </div>
             </div>

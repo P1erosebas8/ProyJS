@@ -17,15 +17,62 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
     try {
         const { id } = req.params;
+
         const [courseRows] = await pool.query("SELECT * FROM cursos WHERE id = ?", [id]);
 
         if (courseRows.length === 0) {
             return res.status(404).json({ error: "Curso no encontrado" });
         }
 
-        const [lessonRows] = await pool.query("SELECT * FROM lecciones WHERE curso_id = ? ORDER BY orden ASC", [id]);
+        const [lessonRows] = await pool.query(
+            "SELECT * FROM lecciones WHERE curso_id = ? ORDER BY orden ASC",
+            [id]
+        );
 
-        res.json({ ...courseRows[0], lecciones: lessonRows });
+        // 👇 AGREGAR ESTO
+        const progreso = { completadas: [] };
+
+        res.json({
+            ...courseRows[0],
+            lecciones: lessonRows,
+            progreso // 👈 agregarlo aquí
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error al obtener detalles del curso" });
+    }
+});
+router.get("/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Obtener curso
+        const [courseRows] = await pool.query(
+            "SELECT * FROM cursos WHERE id = ?",
+            [id]
+        );
+
+        if (courseRows.length === 0) {
+            return res.status(404).json({ error: "Curso no encontrado" });
+        }
+
+        // Obtener lecciones
+        const [lessonRows] = await pool.query(
+            "SELECT * FROM lecciones WHERE curso_id = ? ORDER BY orden ASC",
+            [id]
+        );
+
+        // 👇 PROGRESO DEFAULT (vacío)
+        const progreso = { completadas: [] };
+
+        // Retornamos todo junto
+        res.json({
+            ...courseRows[0],
+            lecciones: lessonRows,
+            progreso: progreso   // 👈 asegurarse que esté aquí
+        });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Error al obtener detalles del curso" });

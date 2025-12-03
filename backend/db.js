@@ -12,16 +12,17 @@ async function createConnection() {
 }
 
 async function createTables(pool) {
-    
-    await pool.query("DROP TABLE IF EXISTS inscripciones");
-    await pool.query("DROP TABLE IF EXISTS lecciones");
-    await pool.query("DROP TABLE IF EXISTS cursos");
-    await pool.query("DROP TABLE IF EXISTS usuarios");
-    
+    // BORRAR SOLO EN DESARROLLO
+    if (process.env.RECREATE_DB === "true") {
+        await pool.query("DROP TABLE IF EXISTS inscripciones");
+        await pool.query("DROP TABLE IF EXISTS lecciones");
+        await pool.query("DROP TABLE IF EXISTS cursos");
+        await pool.query("DROP TABLE IF EXISTS usuarios");
+        await pool.query("DROP TABLE IF EXISTS progreso_lecciones");
+    }
 
-   
     await pool.query(`
-        CREATE TABLE usuarios (
+        CREATE TABLE IF NOT EXISTS usuarios (
             id INT AUTO_INCREMENT PRIMARY KEY,
             email VARCHAR(255) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL,
@@ -30,7 +31,7 @@ async function createTables(pool) {
     `);
 
     await pool.query(`
-        CREATE TABLE cursos (
+        CREATE TABLE IF NOT EXISTS cursos (
             id INT AUTO_INCREMENT PRIMARY KEY,
             titulo VARCHAR(255) NOT NULL,
             descripcion TEXT,
@@ -40,7 +41,7 @@ async function createTables(pool) {
     `);
 
     await pool.query(`
-        CREATE TABLE inscripciones (
+        CREATE TABLE IF NOT EXISTS inscripciones (
             id INT AUTO_INCREMENT PRIMARY KEY,
             usuario_id INT NOT NULL,
             curso_id INT NOT NULL,
@@ -51,7 +52,7 @@ async function createTables(pool) {
     `);
 
     await pool.query(`
-        CREATE TABLE lecciones (
+        CREATE TABLE IF NOT EXISTS lecciones (
             id INT AUTO_INCREMENT PRIMARY KEY,
             curso_id INT NOT NULL,
             titulo VARCHAR(255) NOT NULL,
@@ -62,30 +63,41 @@ async function createTables(pool) {
         )
     `);
 
-    
     await pool.query(`
-        INSERT INTO usuarios (email, password, rol) VALUES ('admin@admin.com', 'admin123', 'administrador')
+        CREATE TABLE IF NOT EXISTS progreso_lecciones (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            usuario_id INT NOT NULL,
+            leccion_id INT NOT NULL,
+            completado TINYINT(1) DEFAULT 1,
+            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+            FOREIGN KEY (leccion_id) REFERENCES lecciones(id) ON DELETE CASCADE
+        )
     `);
 
-    
+
+
+    // Insert inicial
     await pool.query(`
-        INSERT INTO usuarios (email, password, rol) VALUES ('estudiante@ejemplo.com', 'estudiante123', 'estudiante')
+        INSERT IGNORE INTO usuarios (email, password, rol)
+        VALUES
+        ('admin@admin.com', 'admin123', 'administrador'),
+        ('estudiante@ejemplo.com', 'estudiante123', 'estudiante')
     `);
 
-    
     const [courses] = await pool.query("SELECT * FROM cursos");
     if (courses.length === 0) {
         await pool.query(`
             INSERT INTO cursos (titulo, descripcion, imagen, precio) VALUES
-            ('Introducción a React', 'Aprende los fundamentos de React, componentes y hooks.', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png', 0.00),
-            ('Node.js y Express', 'Construye APIs RESTful robustas con Node.js.', 'https://upload.wikimedia.org/wikipedia/commons/d/d9/Node.js_logo.svg', 10.00)
+            ('Introducción a React', 'Aprende bases de React.', '', 0),
+            ('Node.js y Express', 'Construye APIs', '', 10)
         `);
 
         await pool.query(`
-            INSERT INTO lecciones (curso_id, titulo, contenido, video_url, orden) VALUES
-            (1, 'Bienvenida', 'Introducción al curso de React.', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 1),
-            (1, 'Componentes', 'Qué son los componentes.', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 2),
-            (2, 'Setup Inicial', 'Instalando Node.js.', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 1)
+            INSERT INTO lecciones (curso_id, titulo, contenido, orden) VALUES
+            (1, 'Bienvenida', 'Introducción', 1),
+            (1, 'Componentes', 'Componentes en React', 2),
+            (2, 'Setup', 'Instalación Node.js', 1)
         `);
     }
 }
@@ -97,13 +109,14 @@ const pool = mysql.createPool({
     database: "login_db"
 });
 
+// Inicializar DB
 (async () => {
     try {
-        await createConnection();
-        await createTables(pool);
-        console.log("Base de datos y tablas inicializadas correctamente.");
-    } catch (error) {
-        console.error("Error inicializando la base de datos:", error);
+        await createConnection();   // crea la base de datos
+        await createTables(pool);   // crea las tablas (IMPORTANTE)
+        console.log("Base de datos y tablas OK");
+    } catch (err) {
+        console.error("Error DB:", err);
     }
 })();
 
