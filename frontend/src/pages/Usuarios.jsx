@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react";
 
 export const Usuarios = () => {
@@ -41,7 +39,6 @@ export const Usuarios = () => {
         };
 
         if (usuarioActual.id) {
-            // EDITAR
             await fetch(`http://localhost:3000/api/usuarios/${usuarioActual.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -50,7 +47,6 @@ export const Usuarios = () => {
 
             setUsuarios(usuarios.map(u => u.id === usuarioActual.id ? { ...usuarioActual } : u));
         } else {
-            // AGREGAR
             const res = await fetch("http://localhost:3000/api/usuarios", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

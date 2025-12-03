@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 
-// Obtener todas las inscripciones con info extendida
 router.get("/", async (req, res) => {
     try {
         const [rows] = await pool.query(`
@@ -27,7 +26,6 @@ router.get("/", async (req, res) => {
     }
 });
 
-// Obtener inscripciones por usuario
 router.get("/usuario/:usuarioId", async (req, res) => {
     try {
         const { usuarioId } = req.params;
@@ -67,7 +65,6 @@ router.get("/usuario/:usuarioId", async (req, res) => {
     }
 });
 
-// Crear inscripción
 router.post("/", async (req, res) => {
     try {
         const { usuario_id, curso_id } = req.body;
@@ -92,7 +89,6 @@ router.post("/", async (req, res) => {
     }
 });
 
-// Eliminar inscripción
 router.delete("/:id", async (req, res) => {
     try {
         await pool.query("DELETE FROM inscripciones WHERE id=?", [req.params.id]);
@@ -102,5 +98,6 @@ router.delete("/:id", async (req, res) => {
         res.status(500).json({ error: "Error eliminando inscripción" });
     }
 });
+
 
 module.exports = router;

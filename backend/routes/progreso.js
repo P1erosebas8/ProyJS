@@ -26,12 +26,11 @@ router.post("/completar", verificarToken, async (req, res) => {
     }
 });
 
-// OBTENER PROGRESO DE UN CURSO
 // router.get("/curso/:cursoId", verificarToken, async (req, res) => {
 router.get("/curso/:cursoId", async (req, res) => {
     try {
         const { cursoId } = req.params;
-        const usuario_id = 1; // usuario de prueba
+        const usuario_id = 1;
 
         const [total] = await pool.query(
             "SELECT COUNT(*) AS total FROM lecciones WHERE curso_id = ?",

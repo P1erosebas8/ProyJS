@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-export const StudentEnrollments = () => {
+export const StudentEnrollments = ({ usuarioId }) => {
     const [enrollments, setEnrollments] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
         const loadEnrollments = async () => {
+            if (!usuarioId) return;
+
             try {
-                const res = await fetch("http://localhost:3000/api/student/enrollments", {
+                const res = await fetch(`http://localhost:3000/api/student/inscripciones/${usuarioId}`, {
                     credentials: "include"
                 });
 
@@ -20,7 +22,18 @@ export const StudentEnrollments = () => {
                 }
 
                 const data = await res.json();
-                setEnrollments(data);
+
+                // Mapear los datos para React
+                const enrollmentsWithDefaults = data.map(e => ({
+                    id: e.id,
+                    curso_id: e.curso_id,
+                    curso_titulo: e.curso_titulo,
+                    fecha_inscripcion: e.fecha_inscripcion,
+                    progreso: 0,       // predeterminado
+                    estado: "activo"   // predeterminado
+                }));
+
+                setEnrollments(enrollmentsWithDefaults);
             } catch (err) {
                 console.error("Error en fetch:", err);
             } finally {
@@ -29,14 +42,15 @@ export const StudentEnrollments = () => {
         };
 
         loadEnrollments();
-    }, []);
+    }, [usuarioId]);
 
-    if (loading)
+    if (loading) {
         return (
             <div className="text-center mt-4">
                 <div className="spinner-border"></div>
             </div>
         );
+    }
 
     return (
         <>
@@ -56,54 +70,44 @@ export const StudentEnrollments = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {enrollments.length === 0 && (
+                                {enrollments.length === 0 ? (
                                     <tr>
                                         <td colSpan="5" className="text-center text-muted">
                                             No tienes cursos inscritos aún.
                                         </td>
                                     </tr>
-                                )}
-
-                                {enrollments.map((enrollment) => (
-                                    <tr key={enrollment.id}>
-                                        <td>{enrollment.curso_titulo}</td>
-
-                                        <td>
-                                            {new Date(enrollment.fecha_inscripcion).toLocaleDateString()}
-                                        </td>
-
-                                        <td>
-                                            <div className="progress" style={{ width: "100px" }}>
-                                                <div
-                                                    className="progress-bar bg-success"
-                                                    role="progressbar"
-                                                    style={{ width: `${enrollment.progreso}%` }}
-                                                >
-                                                    {enrollment.progreso}%
+                                ) : (
+                                    enrollments.map(enrollment => (
+                                        <tr key={enrollment.id}>
+                                            <td>{enrollment.curso_titulo}</td>
+                                            <td>{new Date(enrollment.fecha_inscripcion).toLocaleDateString()}</td>
+                                            <td>
+                                                <div className="progress" style={{ width: "100px" }}>
+                                                    <div
+                                                        className="progress-bar bg-success"
+                                                        role="progressbar"
+                                                        style={{ width: `${enrollment.progreso}%` }}
+                                                    >
+                                                        {enrollment.progreso}%
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </td>
-
-                                        <td>
-                                            <span
-                                                className={`badge ${
-                                                    enrollment.estado === "activo" ? "bg-primary" : "bg-success"
-                                                }`}
-                                            >
-                                                {enrollment.estado === "activo" ? "En Curso" : "Completado"}
-                                            </span>
-                                        </td>
-
-                                        <td>
-                                            <button
-                                                className="btn btn-sm btn-primary"
-                                                onClick={() => navigate(`/student/course/${enrollment.curso_id}`)}
-                                            >
-                                                <i className="fa fa-play"></i> Continuar
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                            <td>
+                                                <span className={`badge ${enrollment.estado === "activo" ? "bg-primary" : "bg-success"}`}>
+                                                    {enrollment.estado === "activo" ? "En Curso" : "Completado"}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button
+                                                    className="btn btn-sm btn-primary"
+                                                    onClick={() => navigate(`/student/course/${enrollment.curso_id}`)}
+                                                >
+                                                    <i className="fa fa-play"></i> Continuar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>

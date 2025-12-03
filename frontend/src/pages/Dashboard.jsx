@@ -36,7 +36,6 @@ export const Dashboard = () => {
         <>
             <h2 className="fw-bold mb-4">Panel de Administración</h2>
 
-            {/* Tarjetas de estadísticas */}
             <div className="row mb-4">
                 <div className="col-md-4 mb-3">
                     <div className="card bg-primary text-white h-100">

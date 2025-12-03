@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 export const StudentCourses = () => {
-    const [courses, setCourses] = useState([]);            // Cursos disponibles
-    const [enrolledCourses, setEnrolledCourses] = useState([]); // Cursos inscritos
+    const [courses, setCourses] = useState([]);
+    const [enrolledCourses, setEnrolledCourses] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const user = JSON.parse(localStorage.getItem("user"));
@@ -13,24 +13,20 @@ export const StudentCourses = () => {
 
         const loadData = async () => {
             try {
-                // 1. Obtener todos los cursos
                 const resCourses = await fetch("http://localhost:3000/api/cursos");
                 const allCourses = await resCourses.json();
 
-                // 2. Obtener las inscripciones del usuario
                 const resEnroll = await fetch(`http://localhost:3000/api/inscripciones/usuario/${user.id}`);
                 const inscripciones = await resEnroll.json();
 
-                // Cursos inscritos transformados
                 const enrolled = inscripciones.map(item => ({
                     id: item.curso.id,
                     titulo: item.curso.titulo,
                     descripcion: item.curso.descripcion,
-                    progreso: 0, // NO existe en backend aún
+                    progreso: 0,
                     fecha_inscripcion: item.fecha_inscripcion
                 }));
 
-                // Filtrar cursos NO inscritos
                 const available = allCourses.filter(
                     c => !enrolled.some(e => e.id === c.id)
                 );
@@ -95,7 +91,6 @@ export const StudentCourses = () => {
         <>
             <h2 className="mb-4">Mis Cursos</h2>
 
-            {/* Tabs */}
             <ul className="nav nav-tabs mb-4">
                 <li className="nav-item">
                     <button className="nav-link active" data-bs-toggle="tab" data-bs-target="#enrolled">
@@ -110,7 +105,6 @@ export const StudentCourses = () => {
             </ul>
 
             <div className="tab-content">
-                {/* CURSOS INSCRITOS */}
                 <div className="tab-pane fade show active" id="enrolled">
                     {enrolledCourses.length > 0 ? (
                         <div className="row">
@@ -152,7 +146,6 @@ export const StudentCourses = () => {
                     )}
                 </div>
 
-                {/* CURSOS DISPONIBLES */}
                 <div className="tab-pane fade" id="available">
                     {courses.length > 0 ? (
                         <div className="row">

@@ -16,7 +16,6 @@ useEffect(() => {
             setCourse(cursoData);
             if (cursoData.lecciones?.length > 0) setSelectedLesson(cursoData.lecciones[0]);
 
-            // Obtener progreso de usuario 1
             const progresoRes = await fetch(`http://localhost:3000/api/progreso/curso/${id}`);
             const progresoData = await progresoRes.json();
             setCompletedLessons(progresoData.completadas);
@@ -42,7 +41,6 @@ useEffect(() => {
                 return;
             }
 
-            // Alternar estado local
             if (completedLessons.includes(lessonId)) {
                 setCompletedLessons(completedLessons.filter(id => id !== lessonId));
             } else {
@@ -77,7 +75,6 @@ useEffect(() => {
             </div>
 
             <div className="row">
-                {/* Lista de lecciones */}
                 <div className="col-md-4">
                     <div className="card shadow-sm">
                         <div className="card-header bg-primary text-white">
@@ -119,7 +116,6 @@ useEffect(() => {
                     </div>
                 </div>
 
-                {/* Contenido */}
                 <div className="col-md-8">
                     {selectedLesson ? (
                         <div className="card shadow-sm">
@@ -136,7 +132,6 @@ useEffect(() => {
                                 <div dangerouslySetInnerHTML={{ __html: selectedLesson.contenido }} />
 
                                 <div className="d-flex justify-content-between mt-4">
-                                    {/* Anterior */}
                                     <button
                                         className="btn btn-secondary"
                                         disabled={course.lecciones.findIndex(l => l.id === selectedLesson.id) === 0}
@@ -148,7 +143,6 @@ useEffect(() => {
                                         ← Anterior
                                     </button>
 
-                                    {/* Completar */}
                                     <button
                                         className={`btn ${completedLessons.includes(selectedLesson.id)
                                                 ? "btn-success"
@@ -161,7 +155,6 @@ useEffect(() => {
                                             : "Marcar como Completada"}
                                     </button>
 
-                                    {/* Siguiente */}
                                     <button
                                         className="btn btn-secondary"
                                         disabled={course.lecciones.findIndex(l => l.id === selectedLesson.id) === course.lecciones.length - 1}

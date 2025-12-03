@@ -75,9 +75,6 @@ async function createTables(pool) {
         )
     `);
 
-
-
-    // Insert inicial
     await pool.query(`
         INSERT IGNORE INTO usuarios (email, password, rol)
         VALUES
@@ -109,11 +106,10 @@ const pool = mysql.createPool({
     database: "login_db"
 });
 
-// Inicializar DB
 (async () => {
     try {
-        await createConnection();   // crea la base de datos
-        await createTables(pool);   // crea las tablas (IMPORTANTE)
+        await createConnection();
+        await createTables(pool);
         console.log("Base de datos y tablas OK");
     } catch (err) {
         console.error("Error DB:", err);

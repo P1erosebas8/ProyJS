@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 export const StudentDashboard = () => {
     const [stats, setStats] = useState({
         cursosInscritos: 0,
-        cursosCompletados: 0,       // No disponible en backend
-        leccionesCompletadas: 0     // No disponible en backend
+        cursosCompletados: 0,
+        leccionesCompletadas: 0
     });
 
     const [recentCourses, setRecentCourses] = useState([]);
@@ -19,18 +19,16 @@ export const StudentDashboard = () => {
                 const res = await fetch(`http://localhost:3000/api/inscripciones/usuario/${usuario.id}`);
                 const data = await res.json();
 
-                // Cursos inscritos total
                 const inscritos = data.length;
 
-                // Ordenar por fecha reciente
                 const recientes = data
                     .sort((a, b) => new Date(b.fecha_inscripcion) - new Date(a.fecha_inscripcion))
                     .map(item => ({
                         id: item.curso.id,
                         titulo: item.curso.titulo,
-                        progreso: 0   // No hay progreso en DB, se puede agregar luego
+                        progreso: 0
                     }))
-                    .slice(0, 5); // máximo 5 recientes
+                    .slice(0, 5);
 
                 setStats(prev => ({
                     ...prev,
@@ -52,10 +50,8 @@ export const StudentDashboard = () => {
         <>
             <h2 className="fw-bold mb-4">Panel de Estudiante</h2>
 
-            {/* Tarjetas de estadísticas */}
             <div className="row mb-4">
 
-                {/* Cursos inscritos */}
                 <div className="col-md-4 mb-3">
                     <div className="card bg-primary text-white h-100">
                         <div className="card-body">
@@ -73,7 +69,6 @@ export const StudentDashboard = () => {
                     </div>
                 </div>
 
-                {/* Cursos completados */}
                 <div className="col-md-4 mb-3">
                     <div className="card bg-success text-white h-100">
                         <div className="card-body">
@@ -91,7 +86,6 @@ export const StudentDashboard = () => {
                     </div>
                 </div>
 
-                {/* Lecciones completadas */}
                 <div className="col-md-4 mb-3">
                     <div className="card bg-info text-white h-100">
                         <div className="card-body">
@@ -110,7 +104,6 @@ export const StudentDashboard = () => {
                 </div>
             </div>
 
-            {/* Cursos recientes */}
             <div className="card" style={{ background: "#2b2c34" }}>
                 <div className="card-header bg-dark text-white">
                     <h5 className="mb-0">Cursos Recientes</h5>

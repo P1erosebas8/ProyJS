@@ -37,9 +37,6 @@ export const StudentLayout = ({ children, logout }) => {
                     <button className="btn btn-sidebar text-start text-white" onClick={() => navigate('/student-courses')}>
                         <FontAwesomeIcon icon={faBook} className="me-2" /> Mis Cursos
                     </button>
-                    <button className="btn btn-sidebar text-start text-white" onClick={() => navigate('/student-enrollments')}>
-                        <FontAwesomeIcon icon={faUserGraduate} className="me-2" /> Inscripciones
-                    </button>
                 </div>
                 <div className="mt-auto pt-3">
                     <button type="button" className="btn w-100 btn-danger d-flex align-items-center justify-content-center gap-2" onClick={handleLogout}>

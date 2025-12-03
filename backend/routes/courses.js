@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 
-// Get all courses
 router.get("/", async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT * FROM cursos");
@@ -13,7 +12,6 @@ router.get("/", async (req, res) => {
     }
 });
 
-// Get course details with lessons
 router.get("/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -29,13 +27,12 @@ router.get("/:id", async (req, res) => {
             [id]
         );
 
-        // 👇 AGREGAR ESTO
         const progreso = { completadas: [] };
 
         res.json({
             ...courseRows[0],
             lecciones: lessonRows,
-            progreso // 👈 agregarlo aquí
+            progreso
         });
 
     } catch (error) {
@@ -47,7 +44,6 @@ router.get("/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Obtener curso
         const [courseRows] = await pool.query(
             "SELECT * FROM cursos WHERE id = ?",
             [id]
@@ -57,20 +53,17 @@ router.get("/:id", async (req, res) => {
             return res.status(404).json({ error: "Curso no encontrado" });
         }
 
-        // Obtener lecciones
         const [lessonRows] = await pool.query(
             "SELECT * FROM lecciones WHERE curso_id = ? ORDER BY orden ASC",
             [id]
         );
 
-        // 👇 PROGRESO DEFAULT (vacío)
         const progreso = { completadas: [] };
 
-        // Retornamos todo junto
         res.json({
             ...courseRows[0],
             lecciones: lessonRows,
-            progreso: progreso   // 👈 asegurarse que esté aquí
+            progreso: progreso
         });
 
     } catch (error) {
@@ -79,12 +72,10 @@ router.get("/:id", async (req, res) => {
     }
 });
 
-// Enroll in a course
 router.post("/enroll", async (req, res) => {
     try {
         const { usuario_id, curso_id } = req.body;
 
-        // Check if already enrolled
         const [existing] = await pool.query(
             "SELECT * FROM inscripciones WHERE usuario_id = ? AND curso_id = ?",
             [usuario_id, curso_id]
