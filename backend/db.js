@@ -12,7 +12,6 @@ async function createConnection() {
 }
 
 async function createTables(pool) {
-    // BORRAR SOLO EN DESARROLLO
     if (process.env.RECREATE_DB === "true") {
         await pool.query("DROP TABLE IF EXISTS inscripciones");
         await pool.query("DROP TABLE IF EXISTS lecciones");
@@ -26,7 +25,7 @@ async function createTables(pool) {
             id INT AUTO_INCREMENT PRIMARY KEY,
             email VARCHAR(255) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL,
-            rol ENUM('administrador', 'estudiante') DEFAULT 'estudiante'
+            rol ENUM('administrador', 'estudiante', 'profesor') DEFAULT 'estudiante'
         )
     `);
 
@@ -79,7 +78,8 @@ async function createTables(pool) {
         INSERT IGNORE INTO usuarios (email, password, rol)
         VALUES
         ('admin@admin.com', 'admin123', 'administrador'),
-        ('estudiante@ejemplo.com', 'estudiante123', 'estudiante')
+        ('estudiante@ejemplo.com', 'estudiante123', 'estudiante'),
+        ('profesor1@ejemplo.com', 'profesor123', 'profesor')
     `);
 
     const [courses] = await pool.query("SELECT * FROM cursos");

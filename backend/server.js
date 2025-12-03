@@ -11,7 +11,6 @@ const cursosRoutes = require("./routes/cursos");
 const inscripcionesRoutes = require("./routes/inscripciones");
 const coursesRoutes = require("./routes/courses");
 const progresoRoutes = require("./routes/progreso");
-const studentInscripcionesRouter = require("./routes/studentInscripciones");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/usuarios", usuariosRoutes);
@@ -19,7 +18,6 @@ app.use("/api/cursos", cursosRoutes);
 app.use("/api/inscripciones", inscripcionesRoutes);
 app.use("/api/courses", coursesRoutes);
 app.use("/api/progreso", progresoRoutes);
-app.use("/api/student/inscripciones", studentInscripcionesRouter);
 
 
 app.listen(3000, () => {

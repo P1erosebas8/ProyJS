@@ -112,9 +112,9 @@ export const StudentCourses = () => {
                                 <div className="col-md-4 mb-4" key={course.id}>
                                     <div className="card h-100" style={{ background: "#2b2c34" }}>
                                         <div className="card-body">
-                                            <h5 className="card-title">{course.titulo}</h5>
-                                            <p className="card-text">{course.descripcion}</p>
-                                            <p className="card-text">
+                                            <h5 className="card-title" style={{color:"white"}}>{course.titulo}</h5>
+                                            <p className="card-text" style={{color:"white"}}>{course.descripcion}</p>
+                                            <p className="card-text" style={{color:"white"}}>
                                                 <small>Inscrito el: {course.fecha_inscripcion}</small>
                                             </p>
 
@@ -153,9 +153,9 @@ export const StudentCourses = () => {
                                 <div className="col-md-4 mb-4" key={course.id}>
                                     <div className="card h-100" style={{ background: "#2b2c34" }}>
                                         <div className="card-body">
-                                            <h5 className="card-title">{course.titulo}</h5>
-                                            <p className="card-text">{course.descripcion}</p>
-                                            <p className="card-text">
+                                            <h5 className="card-title" style={{color:"white"}}>{course.titulo}</h5>
+                                            <p className="card-text" style={{color:"white"}}>{course.descripcion}</p>
+                                            <p className="card-text" style={{color:"white"}}>
                                                 <span className="badge bg-success">
                                                     {course.precio > 0 ? `S/. ${course.precio}` : "Gratis"}
                                                 </span>

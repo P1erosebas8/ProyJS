@@ -13,6 +13,11 @@ import { StudentEnrollments } from "./pages/StudentEnrollments";
 import { RutaProtejida } from "./components/RutaProtejida";
 import { MainLayout } from "./layouts/MainLayout";
 import { StudentLayout } from "./layouts/StudentLayout";
+import { ProfesorDashboard } from "./pages/ProfesorDashboard";
+import { ProfesorLayout } from "./layouts/ProfesorLayout";
+import { ProfesorCursos } from "./pages/ProfesorCursos";
+import ProfesorCalendario from "./pages/ProfesorCalendario";
+import { ProfesorCursoDetalles } from "./pages/ProfesorCursoDetalles";
 
 function App() {
   const { isAuth, userRole, login, logout } = useAuth();
@@ -33,26 +38,54 @@ function App() {
         <Route path="/student-courses/:id" element={<RutaProtejida isAuth={isAuth && userRole === 'estudiante'}><StudentLayout logout={logout}><StudentCourseDetail /></StudentLayout></RutaProtejida>} />
         <Route path="/student-enrollments" element={<RutaProtejida isAuth={isAuth && userRole === 'estudiante'}><StudentLayout logout={logout}><StudentEnrollments /></StudentLayout></RutaProtejida>} />
 
-        <Route path="*" element={<Navigate to={isAuth ? (userRole === 'administrador' ? '/dashboard' : '/student-dashboard') : '/'} />} />
-      </Routes>
+        <Route path="/profesor-dashboard" element={<RutaProtejida isAuth={isAuth && userRole === 'profesor'}><ProfesorLayout logout={logout}><ProfesorDashboard /></ProfesorLayout></RutaProtejida>} />
+        <Route path="/profesor-cursos" element={<RutaProtejida isAuth={isAuth && userRole === 'profesor'}><ProfesorLayout logout={logout}><ProfesorCursos /></ProfesorLayout></RutaProtejida>} />
+        <Route path="/profesor-cursos/:courseId" element={<RutaProtejida isAuth={isAuth && userRole === 'profesor'}><ProfesorLayout logout={logout}><ProfesorCursoDetalles /></ProfesorLayout></RutaProtejida>} />
+        <Route path="/profesor-calendario" element={<RutaProtejida isAuth={isAuth && userRole === 'profesor'}><ProfesorLayout logout={logout}><ProfesorCalendario /></ProfesorLayout></RutaProtejida>} />
+        <Route path="*" element={
+          <Navigate to={
+            isAuth ?
+              (userRole === 'administrador' ? '/dashboard' :
+                userRole === 'profesor' ? '/profesor-dashboard' :
+                  '/student-dashboard')
+              : '/'
+          } />
+        } />      </Routes>
     </BrowserRouter>
   );
 }
 
-const LoginWrapper = ({ login, isAuth }) => {
-  const navigate = useNavigate();   
+const LoginWrapper = () => {
+  const { isAuth, userRole, login } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async (email, password) => {
     const res = await login(email, password);
+
     if (res.success) {
-      navigate(res.role === 'administrador' ? '/dashboard' : '/student-dashboard');
+      navigate(
+        res.role === "administrador" ? "/dashboard" :
+          res.role === "profesor" ? "/profesor-dashboard" :
+            "/student-dashboard"
+      );
+    } else {
+      alert(res.message);
     }
-    else alert(res.message);
   };
 
-  if (isAuth) return <Navigate to="/dashboard" />;
+  if (isAuth) {
+    // redirige automáticamente según el rol
+    return (
+      <Navigate to={
+        userRole === "administrador" ? "/dashboard" :
+          userRole === "profesor" ? "/profesor-dashboard" :
+            "/student-dashboard"
+      } />
+    );
+  }
 
   return <Login onLogin={handleLogin} />;
 };
+
 
 export default App;
