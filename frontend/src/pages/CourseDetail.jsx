@@ -23,7 +23,7 @@ export const CourseDetail = () => {
     return (
         <div className="container mt-4">
             <div className="row">
-                {/* Sidebar / Lesson List */}
+                
                 <div className="col-md-4">
                     <div className="card shadow-sm">
                         <div className="card-header bg-primary text-white">
@@ -48,7 +48,7 @@ export const CourseDetail = () => {
                     </div>
                 </div>
 
-                {/* Content Area */}
+                
                 <div className="col-md-8">
                     {selectedLesson ? (
                         <div className="card shadow-sm">

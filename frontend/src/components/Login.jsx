@@ -18,7 +18,13 @@ export const Login = () => {
         const data = await res.json();
         localStorage.setItem("logged", "true");
         localStorage.setItem("user", JSON.stringify(data.user));
-        window.location.href = "/dashboard";
+        
+        
+        if (data.user.rol === 'administrador') {
+            window.location.href = "/dashboard";
+        } else {
+            window.location.href = "/student-dashboard";
+        }
     };
 
     return (

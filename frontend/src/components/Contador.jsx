@@ -10,6 +10,7 @@ export const Contador = ({ reset }) => {
 
         if (reset) {
             localStorage.removeItem("visits");
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setCount(0);
             return;
         }

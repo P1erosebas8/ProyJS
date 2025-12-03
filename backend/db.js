@@ -12,16 +12,25 @@ async function createConnection() {
 }
 
 async function createTables(pool) {
+    
+    await pool.query("DROP TABLE IF EXISTS inscripciones");
+    await pool.query("DROP TABLE IF EXISTS lecciones");
+    await pool.query("DROP TABLE IF EXISTS cursos");
+    await pool.query("DROP TABLE IF EXISTS usuarios");
+    
+
+   
     await pool.query(`
-        CREATE TABLE IF NOT EXISTS usuarios (
+        CREATE TABLE usuarios (
             id INT AUTO_INCREMENT PRIMARY KEY,
             email VARCHAR(255) NOT NULL UNIQUE,
-            password VARCHAR(255) NOT NULL
+            password VARCHAR(255) NOT NULL,
+            rol ENUM('administrador', 'estudiante') DEFAULT 'estudiante'
         )
     `);
 
     await pool.query(`
-        CREATE TABLE IF NOT EXISTS cursos (
+        CREATE TABLE cursos (
             id INT AUTO_INCREMENT PRIMARY KEY,
             titulo VARCHAR(255) NOT NULL,
             descripcion TEXT,
@@ -31,7 +40,7 @@ async function createTables(pool) {
     `);
 
     await pool.query(`
-        CREATE TABLE IF NOT EXISTS inscripciones (
+        CREATE TABLE inscripciones (
             id INT AUTO_INCREMENT PRIMARY KEY,
             usuario_id INT NOT NULL,
             curso_id INT NOT NULL,
@@ -42,7 +51,7 @@ async function createTables(pool) {
     `);
 
     await pool.query(`
-        CREATE TABLE IF NOT EXISTS lecciones (
+        CREATE TABLE lecciones (
             id INT AUTO_INCREMENT PRIMARY KEY,
             curso_id INT NOT NULL,
             titulo VARCHAR(255) NOT NULL,
@@ -53,15 +62,17 @@ async function createTables(pool) {
         )
     `);
 
+    
     await pool.query(`
-        INSERT INTO usuarios (email, password)
-        SELECT * FROM (SELECT 'admin@admin.com', 'admin123') AS tmp
-        WHERE NOT EXISTS (
-            SELECT email FROM usuarios WHERE email = 'admin@admin.com'
-        ) LIMIT 1;
+        INSERT INTO usuarios (email, password, rol) VALUES ('admin@admin.com', 'admin123', 'administrador')
     `);
 
-    // Seed Data for Courses
+    
+    await pool.query(`
+        INSERT INTO usuarios (email, password, rol) VALUES ('estudiante@ejemplo.com', 'estudiante123', 'estudiante')
+    `);
+
+    
     const [courses] = await pool.query("SELECT * FROM cursos");
     if (courses.length === 0) {
         await pool.query(`
@@ -70,8 +81,6 @@ async function createTables(pool) {
             ('Node.js y Express', 'Construye APIs RESTful robustas con Node.js.', 'https://upload.wikimedia.org/wikipedia/commons/d/d9/Node.js_logo.svg', 10.00)
         `);
 
-        // Get inserted IDs to seed lessons (assuming 1 and 2 for simplicity in this seed block, but better to fetch)
-        // For simplicity in this MVP seed, we'll assume auto-increment starts at 1.
         await pool.query(`
             INSERT INTO lecciones (curso_id, titulo, contenido, video_url, orden) VALUES
             (1, 'Bienvenida', 'Introducción al curso de React.', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 1),
